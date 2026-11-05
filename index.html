@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ôn Tập Giữa Học Kỳ I - Tin Học 10</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-laptop-code text-2xl text-amber-300"></i>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold leading-tight">ÔN TẬP GIỮA HỌC KỲ I - TIN HỌC 10</h1>
+          <p class="text-xs text-indigo-200">Đầy đủ 20 câu trắc nghiệm 4 lựa chọn & 6 câu trắc nghiệm Đúng - Sai</p>
+        </div>
+      </div>
+      <div id="timer-box" class="flex items-center space-x-2 bg-indigo-800 px-3 py-1.5 rounded-lg border border-indigo-600">
+        <i class="fa-regular fa-clock text-amber-300"></i>
+        <span id="timer" class="font-mono font-bold text-sm md:text-base">45:00</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Progress & Nav Card -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 text-sm font-medium mb-3">
+        <span class="text-slate-600"><i class="fa-solid fa-list-check text-indigo-600 mr-1.5"></i>Tiến độ làm bài:</span>
+        <span id="progress-text" class="text-indigo-700 font-bold">0 / 26 câu hoàn thành</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+        <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Container bài làm -->
+    <form id="quiz-form">
+
+      <!-- PHẦN 1 -->
+      <div class="mb-8">
+        <div class="flex items-center space-x-2 border-b-2 border-indigo-600 pb-2 mb-6">
+          <span class="bg-indigo-600 text-white text-xs uppercase px-2.5 py-1 rounded font-bold tracking-wider">Phần I</span>
+          <h2 class="text-lg font-bold text-slate-800">CÂU HỎI TRẮC NGHIỆM NHIỀU LỰA CHỌN (20 CÂU)</h2>
+        </div>
+        <p class="text-xs text-slate-500 italic mb-4">* Học sinh chọn duy nhất 01 phương án đúng nhất trong các phương án A, B, C hoặc D.</p>
+
+        <div id="mcq-container" class="space-y-6"></div>
+      </div>
+
+      <!-- PHẦN 2 -->
+      <div class="mb-8">
+        <div class="flex items-center space-x-2 border-b-2 border-emerald-600 pb-2 mb-6">
+          <span class="bg-emerald-600 text-white text-xs uppercase px-2.5 py-1 rounded font-bold tracking-wider">Phần II</span>
+          <h2 class="text-lg font-bold text-slate-800">CÂU HỎI TRẮC NGHIỆM ĐÚNG – SAI (6 CÂU)</h2>
+        </div>
+        <p class="text-xs text-slate-500 italic mb-4">* Trong mỗi câu, học sinh phải xác định tính Đúng hoặc Sai cho từng nhận định a), b), c), d).</p>
+
+        <div id="tf-container" class="space-y-6"></div>
+      </div>
+
+      <!-- Bottom action button -->
+      <div class="p-4 bg-white rounded-xl shadow-md border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div class="text-sm text-slate-500 text-center sm:text-left">
+          Kiểm tra kỹ lại bài làm trước khi bấm nộp bài. Hệ thống sẽ chấm điểm và hiển thị giải thích chi tiết.
+        </div>
+        <div class="flex space-x-3 w-full sm:w-auto">
+          <button type="button" id="btn-reset" class="w-1/2 sm:w-auto px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition text-sm">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Làm lại
+          </button>
+          <button type="button" id="btn-submit" class="w-1/2 sm:w-auto px-6 py-2.5 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-md transition text-sm">
+            <i class="fa-solid fa-paper-plane mr-1"></i> Nộp bài
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Modal Kết quả -->
+    <div id="result-modal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6 text-center shadow-2xl transform transition-all animate-bounce-short">
+        <div id="result-icon" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 bg-emerald-100 text-emerald-600">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1">Kết quả ôn tập của bạn</h3>
+        <p class="text-sm text-slate-500 mb-6">Môn: Tin học 10 - Giữa học kỳ I</p>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">Trắc nghiệm 4 lựa chọn</div>
+            <div id="res-mcq-score" class="text-lg font-bold text-indigo-700 mt-1">-- / 20</div>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">Ý trắc nghiệm Đúng/Sai</div>
+            <div id="res-tf-score" class="text-lg font-bold text-emerald-700 mt-1">-- / 24</div>
+          </div>
+        </div>
+
+        <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-6">
+          <div class="text-xs uppercase font-bold text-indigo-600 tracking-wider">Tổng điểm quy đổi (thang 10)</div>
+          <div id="res-total-score" class="text-4xl font-black text-indigo-800 mt-1">0.0 / 10</div>
+          <p id="res-feedback" class="text-xs text-indigo-700 mt-2 font-medium">Rất tốt! Bạn nắm rất vững kiến thức đề cương.</p>
+        </div>
+
+        <button type="button" id="btn-close-modal" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition">
+          Xem giải thích chi tiết từng câu
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="text-center py-6 text-xs text-slate-400">
+    Hệ thống câu hỏi và đáp án dựa theo Đề cương ôn tập Giữa HK1 - Môn Tin học 10.
+  </footer>
+
+  <script>
+    // Dữ liệu 20 câu hỏi trắc nghiệm nhiều lựa chọn
+    const mcqQuestions = [
+      {
+        id: 1,
+        question: "Trong tin học, dữ liệu được định nghĩa là gì?",
+        options: [
+          "Ý nghĩa của các tín hiệu sau khi đã được con người tiếp nhận và phân tích.",
+          "Các thông tin đã được xử lý hoàn chỉnh và đưa ra quyết định.",
+          "Các con số, văn bản, hình ảnh, âm thanh... chưa qua xử lý được lưu trữ trên vật mang tin.",
+          "Cơ chế tự động sao lưu dữ liệu của các dịch vụ lưu trữ đám mây trực tuyến."
+        ],
+        correct: 2,
+        explanation: "Dữ liệu là các con số, văn bản, hình ảnh, âm thanh... chưa qua xử lý, được lưu trữ và ghi lại trên vật mang tin. Còn thông tin là ý nghĩa rút ra từ dữ liệu đã qua xử lý."
+      },
+      {
+        id: 2,
+        question: "Đơn vị đo dung lượng lưu trữ thông tin cơ bản nhất trong máy tính là gì?",
+        options: ["Bit.", "Byte.", "Kilobyte.", "Megabyte."],
+        correct: 1,
+        explanation: "Đơn vị đo dung lượng lưu trữ cơ bản nhất trong máy tính là Byte (1 Byte = 8 bits)."
+      },
+      {
+        id: 3,
+        question: "Theo quy ước hệ nhị phân trong tin học, 1 GB có độ lớn bằng bao nhiêu MB?",
+        options: ["1000 MB.", "1024 MB.", "2048 MB.", "512 MB."],
+        correct: 1,
+        explanation: "Theo quy ước hệ nhị phân trong tin học: 1 GB = 1024 MB = 2^10 MB."
+      },
+      {
+        id: 4,
+        question: "Nguyên nhân chính khiến dung lượng thực tế của ổ cứng, USB khi cắm vào máy tính luôn hiển thị nhỏ hơn dung lượng ghi trên vỏ hộp là do:",
+        options: [
+          "Nhà sản xuất cố tình làm thiếu bộ nhớ để tiết kiệm chi phí.",
+          "Nhà sản xuất tính theo hệ thập phân, còn hệ điều hành tính theo hệ nhị phân kết hợp dung lượng định dạng hệ thống.",
+          "USB bị nhiễm virus ngay từ khi xuất xưởng làm mất bớt dữ liệu.",
+          "Máy tính tự động xóa bớt dung lượng của USB khi kết nối."
+        ],
+        correct: 1,
+        explanation: "Nhà sản xuất tính theo hệ thập phân (1 GB = 10^9 B = 1.000.000.000 B), trong khi hệ điều hành đo theo hệ nhị phân (1 GB = 1024^3 B ≈ 1,073 x 10^9 B) kết hợp với một phần bộ nhớ bị chiếm dụng làm bảng quản lý tệp định dạng (File System)."
+      },
+      {
+        id: 5,
+        question: "Tiêu chuẩn cốt lõi nào sau đây xác định một thiết bị là thiết bị thông minh?",
+        options: [
+          "Luôn có kích thước nhỏ gọn và dùng nguồn pin mặt trời.",
+          "Chỉ có khả năng tiếp nhận thao tác bấm trực tiếp từ bàn phím cơ.",
+          "Có gắn bộ vi xử lý, có khả năng tự chủ hoạt động, tương tác và thích ứng với môi trường.",
+          "Hoạt động hoàn toàn độc lập mà không cần bất kỳ nguồn điện nào."
+        ],
+        correct: 2,
+        explanation: "Thiết bị thông minh là thiết bị số có gắn bộ vi xử lý (CPU/MCU), có khả năng tự chủ hoạt động, tương tác và thích ứng với môi trường xung quanh."
+      },
+      {
+        id: 6,
+        question: "Một siêu thị triển khai hệ thống cảm biến RFID trên kiện hàng kết hợp camera thông minh tự động kiểm kê kho và phát hiện kệ hàng sắp hết để báo nạp hàng. Ứng dụng này thể hiện rõ nhất vai trò gì của tin học?",
+        options: [
+          "Thay thế vĩnh viễn mọi hoạt động trao đổi văn hóa của con người.",
+          "Tự động hóa quy trình quản lý, giảm thiểu sai sót và nâng cao hiệu quả kinh tế.",
+          "Loại bỏ hoàn toàn hỏng hóc vật lý của thiết bị trong kho hàng.",
+          "Giúp con người không cần học hỏi thêm bất kỳ kiến thức mới nào."
+        ],
+        correct: 1,
+        explanation: "Ứng dụng này thể hiện rõ vai trò tự động hóa quy trình quản lý, kiểm soát hàng hóa chính xác, giảm thiểu sai sót và tiết kiệm nhân lực cho doanh nghiệp."
+      },
+      {
+        id: 7,
+        question: "Khái niệm mạng máy tính được hiểu đúng nhất là gì?",
+        options: [
+          "Tập hợp các máy tính nằm trong cùng một phòng học.",
+          "Hai hoặc nhiều máy tính và thiết bị được kết nối với nhau để truyền thông tin và chia sẻ tài nguyên.",
+          "Phần mềm dùng để soạn thảo văn bản và in ấn.",
+          "Mạng kết nối tất cả các thiết bị điện tử gia dụng trong nhà."
+        ],
+        correct: 1,
+        explanation: "Mạng máy tính là tập hợp các máy tính và thiết bị được kết nối với nhau theo một phương thức nào đó nhằm trao đổi dữ liệu và chia sẻ dùng chung tài nguyên."
+      },
+      {
+        id: 8,
+        question: "Mạng Internet có đặc điểm cốt lõi nào sau đây?",
+        options: [
+          "Là mạng nội bộ thuộc sở hữu của riêng một tập đoàn viễn thông.",
+          "Là mạng kết nối các máy tính và mạng máy tính trên phạm vi toàn cầu, không thuộc sở hữu của riêng ai.",
+          "Chỉ hoạt động trong phạm vi một trường học hoặc một cơ quan.",
+          "Là hệ thống viễn thông chỉ truyền tín hiệu tiếng nói."
+        ],
+        correct: 1,
+        explanation: "Internet là mạng toàn cầu kết nối hàng triệu máy tính và mạng máy tính, tuân thủ bộ giao thức TCP/IP và không thuộc quyền sở hữu của riêng cá nhân hay tổ chức nào."
+      },
+      {
+        id: 9,
+        question: "Dịch vụ Điện toán đám mây (Cloud Computing) mang lại lợi ích nổi bật nào sau đây cho người dùng?",
+        options: [
+          "Tự động sửa chữa phần cứng máy tính bị hỏng hóc từ xa.",
+          "Lưu trữ, quản lý và truy cập dữ liệu trực tuyến qua Internet, hỗ trợ làm việc cộng tác theo thời gian thực.",
+          "Tăng tốc độ vi xử lý CPU của máy tính cá nhân lên gấp mười lần.",
+          "Thay thế hoàn toàn màn hình hiển thị của máy tính để bàn."
+        ],
+        correct: 1,
+        explanation: "Lợi ích vượt trội của đám mây là lưu trữ, đồng bộ và truy cập dữ liệu mọi lúc mọi nơi qua mạng Internet, hỗ trợ làm việc cộng tác đồng thời nhiều người."
+      },
+      {
+        id: 10,
+        question: "Khi các thành viên trong nhóm học tập ở xa nhau muốn cùng mở và đồng thời chỉnh sửa một bài trình chiếu theo thời gian thực, giải pháp tối ưu nhất là:",
+        options: [
+          "Chép tệp vào USB rồi mang đến nhà từng bạn chỉnh sửa lần lượt.",
+          "Gửi tệp qua Email cho từng người sửa rồi gửi ngược lại.",
+          "Sử dụng dịch vụ lưu trữ đám mây (như Google Slides) để chia sẻ liên kết làm việc nhóm trực tuyến.",
+          "In bài ra giấy để các thành viên ghi chú bằng bút mực rồi gõ lại sau."
+        ],
+        correct: 2,
+        explanation: "Google Slides/Docs trên nền tảng đám mây cho phép nhiều thành viên cùng mở và chỉnh sửa tài liệu cùng lúc ở khoảng cách xa."
+      },
+      {
+        id: 11,
+        question: "Loại phần mềm độc hại nào ngụy trang dưới dạng một phần mềm hợp pháp hoặc tệp crack để lừa người dùng cài đặt rồi chiếm quyền điều khiển máy tính?",
+        options: [
+          "Virus tin học.",
+          "Trojan (Ngựa thành Troy).",
+          "Worm (Sâu máy tính).",
+          "Spam."
+        ],
+        correct: 1,
+        explanation: "Trojan là phần mềm độc hại giả dạng chương trình hữu ích hoặc tệp crack hợp pháp để đánh lừa người dùng cài đặt, sau đó mở cửa sau (backdoor) kiểm soát hệ thống."
+      },
+      {
+        id: 12,
+        question: "Loại phần mềm độc hại nào nguy hiểm với hành vi tự động mã hóa dữ liệu của nạn nhân và yêu cầu trả tiền chuộc để lấy lại chìa khóa giải mã?",
+        options: ["Ransomware.", "Spyware.", "Keylogger.", "Adware."],
+        correct: 0,
+        explanation: "Ransomware là phần mềm mã độc tống tiền chuyên mã hóa các tệp tin trên máy nạn nhân và ép trả tiền chuộc để có khóa giải mã."
+      },
+      {
+        id: 13,
+        question: "Khi nhận được tin nhắn từ tài khoản lạ kèm link thông báo 'Trúng thưởng 50 triệu, hãy nhấp vào và nhập mã OTP ngân hàng để nhận tiền', cách xử lý an toàn nhất là:",
+        options: [
+          "Nhập ngay mã OTP để nhận thưởng kịp thời.",
+          "Chuyển tiếp tin nhắn cho tất cả bạn bè cùng tham gia.",
+          "Tuyệt đối không bấm link, không cung cấp thông tin/OTP, đồng thời báo cáo và chặn tài khoản lạ.",
+          "Nhập thử mật khẩu sai xem hệ thống phản hồi thế nào."
+        ],
+        correct: 2,
+        explanation: "Đây là hình thức lừa đảo giả mạo (phishing). Tuyệt đối không nhấp link lạ, không cung cấp mã OTP/mật khẩu, chặn và báo cáo tài khoản lừa đảo."
+      },
+      {
+        id: 14,
+        question: "Phát hiện máy tính phòng thực hành có dấu hiệu bất thường như tự động gửi thư rác và các tệp văn bản bị mã hóa đổi đuôi, hành động khẩn cấp đúng đắn là:",
+        options: [
+          "Tiếp tục sử dụng bình thường đến hết giờ thực hành.",
+          "Ngắt kết nối mạng lập tức và báo cáo giáo viên phụ trách.",
+          "Khởi động lại máy tính liên tục mười lần.",
+          "Rút phích cắm điện của tất cả các máy tính khác trong phòng."
+        ],
+        correct: 1,
+        explanation: "Hành động đầu tiên và khẩn cấp nhất khi nghi máy tính nhiễm mã độc là lập tức ngắt mạng (rút cáp/tắt wifi) để ngăn mã độc lây lan qua mạng LAN và gửi dữ liệu ra máy chủ kẻ tấn công, sau đó báo phụ trách."
+      },
+      {
+        id: 15,
+        question: "Việc tự ý sao chép, phân phối và sử dụng phần mềm thương mại có bẻ khóa (crack) là hành vi vi phạm quy định nào?",
+        options: [
+          "Luật Giao thông đường bộ.",
+          "Luật Sở hữu trí tuệ và bản quyền phần mềm.",
+          "Luật Bảo vệ môi trường.",
+          "Luật Doanh nghiệp."
+        ],
+        correct: 1,
+        explanation: "Việc sử dụng, chia sẻ phần mềm crack vi phạm quyền tác giả và quyền sở hữu trí tuệ quy định trong Luật Sở hữu trí tuệ và Luật CNTT."
+      },
+      {
+        id: 16,
+        question: "Nguy cơ lớn nhất đối với hệ thống máy tính khi tải và chạy các tệp crack phần mềm trôi nổi trên Internet là gì?",
+        options: [
+          "Máy tính bị sụt giảm dung lượng màn hình.",
+          "Bị cài cắm ngầm các loại mã độc nguy hiểm (Trojan, Ransomware, Keylogger) để đánh cắp dữ liệu.",
+          "Bàn phím máy tính bị hỏng cơ học lập tức.",
+          "Tự động tăng tiền cước dịch vụ điện sinh hoạt."
+        ],
+        correct: 1,
+        explanation: "Các tệp crack trôi nổi có nguy cơ cực cao bị chèn mã độc như Trojan, Ransomware, Keylogger để âm thầm kiểm soát máy tính hoặc đánh cắp thông tin tài khoản."
+      },
+      {
+        id: 17,
+        question: "Phát biểu nào sau đây giải thích đúng nhất về Phần mềm nguồn mở (FOSS)?",
+        options: [
+          "Là phần mềm bị cấm sử dụng trên toàn thế giới.",
+          "Là phần mềm công bố mã nguồn công khai, cho phép người dùng tự do sử dụng, nghiên cứu, chỉnh sửa và chia sẻ hợp pháp.",
+          "Là phần mềm bắt buộc phải trả phí dịch vụ hàng tháng rất đắt.",
+          "Là phần mềm chỉ chạy được trên điện thoại thông minh."
+        ],
+        correct: 1,
+        explanation: "Phần mềm nguồn mở (FOSS) công khai mã nguồn, người dùng được toàn quyền sử dụng, tìm hiểu, chỉnh sửa và phân phối lại mà không phải trả phí bản quyền."
+      },
+      {
+        id: 18,
+        question: "Để không vi phạm bản quyền mà vẫn hoàn thành bài tập thiết kế đồ họa vector, học sinh nên lựa chọn phần mềm hợp pháp nào sau đây?",
+        options: [
+          "Tải phần mềm Adobe Illustrator bản crack trên trang mạng trôi nổi.",
+          "Sử dụng phần mềm đồ họa nguồn mở Inkscape miễn phí hợp pháp.",
+          "Chụp ảnh màn hình phần mềm của bạn khác rồi nhận làm của mình.",
+          "Sử dụng phần mềm bẻ khóa do người lạ gửi qua tin nhắn."
+        ],
+        correct: 1,
+        explanation: "Inkscape là phần mềm thiết kế đồ họa vector nguồn mở hoàn toàn miễn phí, hợp pháp, an toàn thay thế cho Illustrator hoặc CorelDraw."
+      },
+      {
+        id: 19,
+        question: "Theo quy định của Luật An ninh mạng, hành vi nào sau đây bị nghiêm cấm trên môi trường số?",
+        options: [
+          "Đăng tải nội dung học tập hữu ích lên trang web nhà trường.",
+          "Đăng tin sai sự thật, vu khống, bôi nhọ danh dự của người khác trên mạng xã hội.",
+          "Tìm kiếm thông tin tuyển sinh trên Cổng thông tin Bộ GD&ĐT.",
+          "Gửi thư điện tử trao đổi bài tập với thầy cô giáo."
+        ],
+        correct: 1,
+        explanation: "Điều 8, 16 Luật An ninh mạng nghiêm cấm đăng tải, phát tán thông tin bịa đặt, sai sự thật, xuyên tạc nhằm bôi nhọ, xúc phạm uy tín và danh dự cá nhân/tổ chức."
+      },
+      {
+        id: 20,
+        question: "Khi phát hiện bạn cùng lớp bị trang mạng giả mạo đăng tin bịa đặt bôi nhọ danh dự, hành động hỗ trợ chuẩn mực và đúng luật nhất là:",
+        options: [
+          "Tham gia bình luận chỉ trích và chia sẻ bài viết đó rộng rãi.",
+          "Không hùa theo chia sẻ, hướng dẫn bạn lưu bằng chứng, Báo cáo (Report) trang giả mạo và báo giáo viên/phụ huynh.",
+          "Lập một tài khoản giả mạo khác để chửi bới lại người đăng bài.",
+          "Bỏ qua và không nói cho ai biết."
+        ],
+        correct: 1,
+        explanation: "Cần giữ thái độ văn minh: không like/share bài viết xấu, hướng dẫn bạn chụp ảnh lưu bằng chứng, báo cáo tài khoản vi phạm lên quản trị mạng và thông báo người lớn."
+      }
+    ];
+
+    // Dữ liệu 6 câu hỏi đúng - sai
+    const tfQuestions = [
+      {
+        id: 1,
+        title: "Dữ liệu và Xử lý thông tin",
+        scenario: "Hội đồng thi thu nhận danh sách điểm số thô của 500 thí sinh dự thi và nhập vào phần mềm quản lý thi để xử lý.",
+        items: [
+          {
+            text: "Các con số ghi điểm kiểm tra chi tiết của từng bài thi khi chưa qua tổng hợp và phân tích được coi là dữ liệu.",
+            isCorrect: true,
+            rationale: "Điểm số chi tiết ban đầu thu thập được khi chưa qua tổng hợp là dữ liệu thô."
+          },
+          {
+            text: "Bảng tổng hợp xếp thứ hạng và danh sách học sinh đạt giải trích xuất từ phần mềm để công bố cho học sinh là thông tin.",
+            isCorrect: true,
+            rationale: "Bảng xếp hạng và danh sách giải đã mang ý nghĩa, kiến thức và căn cứ ra quyết định nên là thông tin."
+          },
+          {
+            text: "Việc lưu trữ dữ liệu điểm thi trên máy tính có nhược điểm là tốc độ tìm kiếm và tra cứu chậm hơn so với sổ sách giấy truyền thống.",
+            isCorrect: false,
+            rationale: "Lưu trên máy tính giúp tìm kiếm, sắp xếp tự động nhanh hơn hàng trăm lần so với sổ sách giấy."
+          },
+          {
+            text: "Phần mềm tự động tính điểm trung bình và xếp hạng cho 500 thí sinh trong vài giây giúp nâng cao năng suất và độ chính xác so với làm thủ công.",
+            isCorrect: true,
+            rationale: "Xử lý dữ liệu bằng phần mềm máy tính mang lại tốc độ vượt trội và loại trừ các sai sót do tính toán thủ công."
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "Thiết bị thông minh & Dung lượng lưu trữ",
+        scenario: "Hưng mua một thẻ nhớ MicroSD dung lượng ghi trên vỏ hộp là 32 GB để lắp vào điện thoại thông minh phục vụ học tập.",
+        items: [
+          {
+            text: "Điện thoại thông minh là một thiết bị số thông minh vì có tích hợp bộ vi xử lý và khả năng xử lý thông tin tự động.",
+            isCorrect: true,
+            rationale: "Smartphone tích hợp vi xử lý SoC, cảm biến và hệ điều hành có khả năng xử lý dữ liệu thích ứng và tự chủ."
+          },
+          {
+            text: "Dung lượng 32 GB trên vỏ hộp tương ứng đúng bằng 32.000 MB theo cách tính hệ nhị phân của hệ điều hành.",
+            isCorrect: false,
+            rationale: "Theo hệ nhị phân, 1 GB = 1024 MB nên 32 GB = 32 x 1024 = 32.768 MB (còn 32.000 MB là nếu tính theo hệ thập phân làm tròn)."
+          },
+          {
+            text: "Khi kiểm tra trên điện thoại, dung lượng khả dụng thực tế hiển thị khoảng 29,8 GB là do chênh lệch quy đổi giữa hệ thập phân (10^9 B) và hệ nhị phân (2^30 B) cùng file hệ thống.",
+            isCorrect: true,
+            rationale: "32 x 10^9 Bytes quy đổi sang nhị phân: (32 x 10^9) / (1024^3) ≈ 29,8 GB, kèm một phần dung lượng dành cho hệ thống tệp định dạng."
+          },
+          {
+            text: "Một tệp video bài giảng có dung lượng 1500 MB sẽ không thể lưu trữ vừa vào thẻ nhớ còn trống 2 GB.",
+            isCorrect: false,
+            rationale: "2 GB = 2 x 1024 MB = 2048 MB. Vì 2048 MB > 1500 MB nên hoàn toàn có thể lưu trữ được."
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "Mạng máy tính & Dịch vụ đám mây",
+        scenario: "Phòng máy tính nhà trường gồm 30 máy tính kết nối vào thiết bị Switch và dùng chung 1 máy in mạng, có kết nối Internet qua Router.",
+        items: [
+          {
+            text: "Các máy tính và máy in trong phòng máy là các thiết bị đầu cuối của mạng máy tính.",
+            isCorrect: true,
+            rationale: "Máy tính, máy in, điện thoại là các thiết bị đầu cuối nhận và gửi dữ liệu trên mạng."
+          },
+          {
+            text: "Thiết bị Switch đóng vai trò kết nối trung tâm cho phép các máy tính trong phòng truyền dữ liệu và in ấn nội bộ.",
+            isCorrect: true,
+            rationale: "Switch chuyển tiếp gói tin trong mạng cục bộ (LAN), kết nối các máy tính với nhau và với máy in chung."
+          },
+          {
+            text: "Tất cả các máy tính trong phòng máy muốn chia sẻ tệp cho nhau bắt buộc phải có kết nối mạng Internet toàn cầu.",
+            isCorrect: false,
+            rationale: "Chỉ cần mạng cục bộ (LAN) qua Switch là các máy tính đã có thể chia sẻ tệp và máy in nội bộ mà không cần Internet."
+          },
+          {
+            text: "Dịch vụ Điện toán đám mây giúp các học sinh có thể mở và cùng chỉnh sửa một tệp báo cáo nhóm từ xa theo thời gian thực.",
+            isCorrect: true,
+            rationale: "Đám mây lưu trữ dữ liệu trực tuyến trên máy chủ, hỗ trợ tính năng làm việc cộng tác đồng thời nhiều người."
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "An toàn thông tin & Mã độc",
+        scenario: "Trong giờ thực hành, máy tính của Lan xuất hiện thông báo toàn bộ tệp tài liệu bị mã hóa đổi đuôi và yêu cầu chuyển tiền để nhận chìa khóa giải mã.",
+        items: [
+          {
+            text: "Máy tính của Lan đã bị tấn công bởi loại phần mềm độc hại mã hóa dữ liệu tống tiền (Ransomware).",
+            isCorrect: true,
+            rationale: "Hành vi đổi phần mở rộng tệp tin, mã hóa không thể mở và đòi tiền chuộc là dấu hiệu đặc trưng của Ransomware."
+          },
+          {
+            text: "Thao tác xử lý khẩn cấp đúng đắn nhất là ngắt kết nối mạng (rút dây cáp/tắt Wifi) ngay lập tức và báo kỹ thuật.",
+            isCorrect: true,
+            rationale: "Ngắt mạng ngay lập tức giúp ngăn chặn mã độc tiếp tục giao tiếp máy chủ kẻ xấu và lây lan sang các máy tính khác trong phòng."
+          },
+          {
+            text: "Chuyển tiền ngay theo yêu cầu trên màn hình là cách duy nhất và an toàn nhất được các chuyên gia khuyến nghị.",
+            isCorrect: false,
+            rationale: "Tuyệt đối không trả tiền chuộc vì kẻ xấu thường không gửi lại mã và khuyến khích tội phạm tiếp diễn."
+          },
+          {
+            text: "Đăng xuất tài khoản, đổi mật khẩu mạnh và bật xác thực 2 yếu tố (2FA) là các biện pháp bảo vệ tài khoản cá nhân hiệu quả.",
+            isCorrect: true,
+            rationale: "2FA và mật khẩu độ phức tạp cao là phương thức chuẩn mực ngăn ngừa truy cập trái phép vào tài khoản."
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "Bản quyền & Phần mềm nguồn mở",
+        scenario: "Bạn Tuấn muốn sử dụng phần mềm đồ họa đắt tiền nhưng không có tiền mua bản quyền, nên định tải tệp crack trên mạng xã hội.",
+        items: [
+          {
+            text: "Tự ý tải và cài đặt tệp crack phần mềm thương mại là hành vi vi phạm Luật Sở hữu trí tuệ.",
+            isCorrect: true,
+            rationale: "Bẻ khóa và dùng phần mềm thương mại không có bản quyền vi phạm quyền tác giả và quyền sở hữu trí tuệ."
+          },
+          {
+            text: "Tệp crack trôi nổi trên mạng hoàn toàn an toàn và không bao giờ chứa mã độc hại.",
+            isCorrect: false,
+            rationale: "Tệp crack trôi nổi có nguy cơ cao nhất bị cài cắm Trojan, Ransomware và phần mềm gián điệp."
+          },
+          {
+            text: "Tải và sử dụng phần mềm đồ họa nguồn mở Inkscape là giải pháp thay thế hợp pháp và miễn phí.",
+            isCorrect: true,
+            rationale: "Inkscape là phần mềm nguồn mở FOSS đồ họa vector hoàn toàn miễn phí và hợp pháp 100%."
+          },
+          {
+            text: "Phần mềm nguồn mở cho phép người dùng tự do nghiên cứu, chỉnh sửa và chia sẻ mã nguồn theo giấy phép công cộng.",
+            isCorrect: true,
+            rationale: "Đây là định nghĩa và tôn chỉ cốt lõi của phần mềm nguồn mở (FOSS)."
+          }
+        ]
+      },
+      {
+        id: 6,
+        title: "Văn hóa ứng xử & Luật An ninh mạng",
+        scenario: "Trên nhóm mạng xã hội của lớp, xuất hiện một tài khoản ảo đăng bài viết cắt ghép hình ảnh bịa đặt bôi nhọ một học sinh trong lớp.",
+        items: [
+          {
+            text: "Đăng tải thông tin bịa đặt xúc phạm danh dự người khác trên mạng xã hội là hành vi vi phạm Luật An ninh mạng.",
+            isCorrect: true,
+            rationale: "Khoản 1 Điều 8 và Điều 16 Luật An ninh mạng nghiêm cấm hành vi xúc phạm nhân phẩm, danh dự của người khác trên mạng."
+          },
+          {
+            text: "Việc nhấn thích (like) và chia sẻ (share) bài viết bịa đặt đó cũng là hành vi tiếp tay cho vi phạm pháp luật.",
+            isCorrect: true,
+            rationale: "Tương tác, phát tán thông tin bịa đặt cũng là hành vi lan truyền thông tin sai lệch tiếp tay cho kẻ xấu."
+          },
+          {
+            text: "Học sinh trong lớp nên nhắn tin chửi bới đe dọa lại tài khoản ảo để bảo vệ bạn mình.",
+            isCorrect: false,
+            rationale: "Chửi bới, đe dọa người khác cũng là hành vi bạo lực mạng và vi phạm chuẩn mực ứng xử số."
+          },
+          {
+            text: "Hành vi ứng xử chuẩn mực là động viên bạn, chụp ảnh màn hình lưu bằng chứng, báo cáo (report) vi phạm và báo giáo viên chủ nhiệm.",
+            isCorrect: true,
+            rationale: "Lưu bằng chứng, report tài khoản và thông báo người có trách nhiệm (thầy cô, phụ huynh) là quy trình xử lý đúng luật và nhân văn."
+          }
+        ]
+      }
+    ];
+
+    // Render câu hỏi phần 1 (MCQ)
+    function renderMCQ() {
+      const container = document.getElementById('mcq-container');
+      container.innerHTML = mcqQuestions.map((q, qIndex) => `
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm transition hover:border-indigo-300" id="mcq-card-${q.id}">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <h3 class="font-bold text-slate-800 text-base leading-snug">
+              <span class="text-indigo-600 mr-1.5">Câu ${q.id}:</span> ${q.question}
+            </h3>
+            <span class="mcq-badge text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-500 whitespace-nowrap">Chưa làm</span>
+          </div>
+          <div class="grid grid-cols-1 gap-2.5 mt-3">
+            ${q.options.map((opt, optIndex) => `
+              <label class="mcq-option flex items-center p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50/50 transition select-none text-sm text-slate-700"
+                     data-qid="${q.id}" data-opt="${optIndex}">
+                <input type="radio" name="mcq-${q.id}" value="${optIndex}" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-slate-300 mr-3">
+                <span class="font-semibold text-slate-500 mr-2">${String.fromCharCode(65 + optIndex)}.</span>
+                <span class="opt-text flex-1">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div class="mcq-expl mt-4 p-3.5 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200 hidden leading-relaxed">
+            <span class="font-bold text-indigo-700 block mb-1"><i class="fa-solid fa-circle-info mr-1"></i>Giải thích chi tiết:</span>
+            ${q.explanation}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render câu hỏi phần 2 (Đúng - Sai)
+    function renderTF() {
+      const container = document.getElementById('tf-container');
+      const letterNames = ['a', 'b', 'c', 'd'];
+      container.innerHTML = tfQuestions.map((q) => `
+        <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm transition hover:border-emerald-300" id="tf-card-${q.id}">
+          <div class="mb-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Chủ đề: ${q.title}</span>
+              <span class="tf-badge text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-500">Chưa làm đủ</span>
+            </div>
+            <h3 class="font-bold text-slate-800 text-base mt-2">
+              <span class="text-emerald-700 mr-1.5">Câu ${q.id}:</span>
+            </h3>
+            <p class="text-sm text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100 mt-1 italic leading-relaxed">
+              "${q.scenario}"
+            </p>
+          </div>
+
+          <div class="space-y-3 mt-4">
+            ${q.items.map((item, itemIdx) => `
+              <div class="p-3 rounded-lg border border-slate-200 bg-white tf-item-box" data-qid="${q.id}" data-item="${itemIdx}">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+                  <div class="flex-1 text-slate-700 leading-snug">
+                    <span class="font-bold text-slate-800 mr-1.5">${letterNames[itemIdx]})</span>${item.text}
+                  </div>
+                  <div class="flex items-center space-x-3 shrink-0 self-end sm:self-center">
+                    <label class="inline-flex items-center px-2.5 py-1 rounded cursor-pointer hover:bg-emerald-50 transition border border-slate-200 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50 has-[:checked]:text-emerald-700">
+                      <input type="radio" name="tf-${q.id}-${itemIdx}" value="true" class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 mr-1.5">
+                      <span class="text-xs font-bold">Đúng</span>
+                    </label>
+                    <label class="inline-flex items-center px-2.5 py-1 rounded cursor-pointer hover:bg-rose-50 transition border border-slate-200 has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50 has-[:checked]:text-rose-700">
+                      <input type="radio" name="tf-${q.id}-${itemIdx}" value="false" class="w-4 h-4 text-rose-600 focus:ring-rose-500 mr-1.5">
+                      <span class="text-xs font-bold">Sai</span>
+                    </label>
+                  </div>
+                </div>
+                <div class="tf-expl mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500 hidden">
+                  <span class="font-semibold text-emerald-700">Giải thích:</span> ${item.rationale}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Cập nhật tiến độ làm bài
+    function updateProgress() {
+      let completedMCQ = 0;
+      mcqQuestions.forEach(q => {
+        const checked = document.querySelector(`input[name="mcq-${q.id}"]:checked`);
+        const card = document.getElementById(`mcq-card-${q.id}`);
+        const badge = card.querySelector('.mcq-badge');
+        if (checked) {
+          completedMCQ++;
+          badge.textContent = 'Đã làm';
+          badge.className = 'mcq-badge text-xs px-2 py-0.5 rounded font-medium bg-indigo-100 text-indigo-700';
+        } else {
+          badge.textContent = 'Chưa làm';
+          badge.className = 'mcq-badge text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-500';
+        }
+      });
+
+      let completedTF = 0;
+      tfQuestions.forEach(q => {
+        let itemsChecked = 0;
+        for (let i = 0; i < 4; i++) {
+          if (document.querySelector(`input[name="tf-${q.id}-${i}"]:checked`)) {
+            itemsChecked++;
+          }
+        }
+        const card = document.getElementById(`tf-card-${q.id}`);
+        const badge = card.querySelector('.tf-badge');
+        if (itemsChecked === 4) {
+          completedTF++;
+          badge.textContent = 'Đã xong 4/4';
+          badge.className = 'tf-badge text-xs px-2 py-0.5 rounded font-medium bg-emerald-100 text-emerald-700';
+        } else if (itemsChecked > 0) {
+          badge.textContent = `Làm ${itemsChecked}/4`;
+          badge.className = 'tf-badge text-xs px-2 py-0.5 rounded font-medium bg-amber-100 text-amber-700';
+        } else {
+          badge.textContent = 'Chưa làm';
+          badge.className = 'tf-badge text-xs px-2 py-0.5 rounded font-medium bg-slate-100 text-slate-500';
+        }
+      });
+
+      const totalCompleted = completedMCQ + completedTF;
+      const totalQuestions = mcqQuestions.length + tfQuestions.length; // 26
+      const percent = Math.round((totalCompleted / totalQuestions) * 100);
+
+      document.getElementById('progress-bar').style.width = percent + '%';
+      document.getElementById('progress-text').textContent = `${totalCompleted} / ${totalQuestions} câu hoàn thành (${percent}%)`;
+    }
+
+    // Chấm điểm và hiển thị kết quả
+    function submitQuiz() {
+      let mcqCorrectCount = 0;
+      let tfCorrectItemsCount = 0;
+
+      // 1. Chấm MCQ
+      mcqQuestions.forEach((q) => {
+        const card = document.getElementById(`mcq-card-${q.id}`);
+        const checked = document.querySelector(`input[name="mcq-${q.id}"]:checked`);
+        const userChoice = checked ? parseInt(checked.value) : -1;
+        const options = card.querySelectorAll('.mcq-option');
+        const expl = card.querySelector('.mcq-expl');
+
+        options.forEach((optEl, idx) => {
+          optEl.classList.remove('bg-indigo-50/50', 'border-indigo-500');
+          if (idx === q.correct) {
+            optEl.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-800', 'font-medium');
+            optEl.querySelector('.opt-text').innerHTML += ' <i class="fa-solid fa-circle-check text-emerald-600 ml-1.5"></i>';
+          } else if (idx === userChoice) {
+            optEl.classList.add('bg-rose-50', 'border-rose-400', 'text-rose-800');
+            optEl.querySelector('.opt-text').innerHTML += ' <i class="fa-solid fa-circle-xmark text-rose-500 ml-1.5"></i>';
+          }
+        });
+
+        if (userChoice === q.correct) {
+          mcqCorrectCount++;
+        }
+        expl.classList.remove('hidden');
+      });
+
+      // 2. Chấm True/False
+      tfQuestions.forEach((q) => {
+        const card = document.getElementById(`tf-card-${q.id}`);
+        q.items.forEach((item, itemIdx) => {
+          const itemBox = card.querySelector(`.tf-item-box[data-item="${itemIdx}"]`);
+          const checked = document.querySelector(`input[name="tf-${q.id}-${itemIdx}"]:checked`);
+          const userVal = checked ? (checked.value === 'true') : null;
+          const expl = itemBox.querySelector('.tf-expl');
+
+          if (userVal === item.isCorrect) {
+            tfCorrectItemsCount++;
+            itemBox.classList.add('bg-emerald-50/50', 'border-emerald-300');
+          } else {
+            itemBox.classList.add('bg-rose-50/40', 'border-rose-300');
+          }
+
+          // Gợi ý đáp án đúng
+          const resultBadge = document.createElement('span');
+          resultBadge.className = `ml-2 text-xs font-bold px-1.5 py-0.5 rounded ${item.isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`;
+          resultBadge.textContent = item.isCorrect ? 'Đáp án: ĐÚNG' : 'Đáp án: SAI';
+          itemBox.querySelector('.flex-1').appendChild(resultBadge);
+
+          expl.classList.remove('hidden');
+        });
+      });
+
+      // Tính điểm quy đổi (thang điểm 10): 
+      // Phần 1 (20 câu): 5.0 điểm (mỗi câu 0.25đ)
+      // Phần 2 (24 ý): 5.0 điểm (mỗi ý ~0.208đ)
+      const mcqScore = (mcqCorrectCount * 0.25);
+      const tfScore = (tfCorrectItemsCount / 24) * 5.0;
+      const totalScore = (mcqScore + tfScore).toFixed(1);
+
+      document.getElementById('res-mcq-score').textContent = `${mcqCorrectCount} / 20 câu (${mcqScore.toFixed(2)}đ)`;
+      document.getElementById('res-tf-score').textContent = `${tfCorrectItemsCount} / 24 ý (${tfScore.toFixed(2)}đ)`;
+      document.getElementById('res-total-score').textContent = `${totalScore} / 10`;
+
+      const feedback = document.getElementById('res-feedback');
+      if (totalScore >= 8.5) {
+        feedback.textContent = 'Xuất sắc! Bạn đã nắm rất vững toàn bộ nội dung ôn tập giữa kỳ!';
+      } else if (totalScore >= 7.0) {
+        feedback.textContent = 'Khá tốt! Hãy xem lại các câu sai để chuẩn bị tốt nhất cho bài thi nhé.';
+      } else if (totalScore >= 5.0) {
+        feedback.textContent = 'Đạt yêu cầu! Cần ôn kỹ lại các phần mã độc, dung lượng bộ nhớ và dịch vụ đám mây.';
+      } else {
+        feedback.textContent = 'Cần cố gắng nhiều hơn! Hãy đọc kỹ lại tóm tắt lý thuyết trong đề cương.';
+      }
+
+      document.getElementById('result-modal').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Đồng hồ đếm ngược 45 phút
+    let timeLeft = 45 * 60;
+    const timerEl = document.getElementById('timer');
+    const timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerEl.textContent = "00:00";
+        alert("Đã hết thời gian làm bài ôn tập!");
+        submitQuiz();
+      } else {
+        const m = Math.floor(timeLeft / 60);
+        const s = timeLeft % 60;
+        timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+
+    // Khởi tạo và gán sự kiện
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMCQ();
+      renderTF();
+
+      document.getElementById('quiz-form').addEventListener('change', updateProgress);
+
+      document.getElementById('btn-submit').addEventListener('click', () => {
+        if (confirm("Bạn có chắc chắn muốn nộp bài để xem điểm và lời giải chi tiết?")) {
+          clearInterval(timerInterval);
+          submitQuiz();
+        }
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        if (confirm("Bạn có muốn làm lại bài từ đầu không?")) {
+          location.reload();
+        }
+      });
+
+      document.getElementById('btn-close-modal').addEventListener('click', () => {
+        document.getElementById('result-modal').classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
+```eof
+
+### Tóm tắt nội dung ứng dụng đã tạo:
+1. **Phần I (20 câu trắc nghiệm nhiều lựa chọn):** Đầy đủ 20 câu hỏi trọng tâm từ đề cương bao gồm các chủ đề: *Dữ liệu & Xử lý thông tin*, *Đơn vị đo dung lượng*, *Thiết bị thông minh*, *Mạng máy tính & Internet*, *Điện toán đám mây*, *Phần mềm độc hại (Trojan, Ransomware, Keylogger)*, *Bản quyền & Phần mềm nguồn mở (FOSS)*, *Luật An ninh mạng & Văn hóa ứng xử số*.
+2. **Phần II (6 câu trắc nghiệm Đúng - Sai):** Gồm 24 ý nhận định tình huống thực tế (Hội đồng thi, Thẻ nhớ 32 GB, Phòng máy Switch, Máy tính dính Ransomware, Phần mềm Crack, Bắt nạt qua mạng) theo đúng quy cách đề thi đổi mới.
+3. **Tính năng tiện ích:**
+   - Chấm điểm tự động và quy đổi sang thang điểm 10 chuẩn.
+   - Hiển thị phản hồi, giải thích cặn kẽ từng nhận định sau khi nộp.
+   - Thanh tiến độ động theo thời gian thực và đồng hồ đếm ngược 45 phút.
+   - Hoàn toàn độc lập trong 1 tệp HTML duy nhất, có thể gửi trực tiếp qua Zalo/Email hoặc lưu trên Google Drive/OneDrive để học sinh mở trên điện thoại hay máy tính làm bài bất cứ lúc nào.
